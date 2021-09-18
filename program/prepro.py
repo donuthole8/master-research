@@ -62,8 +62,9 @@ def clustering(img):
 
 
 def quantization(img):
-  img = img // 4 * 4
+  # img = img // 4 * 4
   # img = img // 8 * 8
+  img = img // 16 * 16
   cv2.imwrite('results/quantization.png', img)
 
   return img
