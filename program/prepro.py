@@ -1,6 +1,19 @@
-import cv2,time
+import cv2,time,tifffile
+import numpy as np
 import pymeanshift as pms
 from PIL import Image
+
+
+def read_tifffile(path):
+  img = tifffile.imread(path)
+  print(img.shape)
+  tifffile.imsave('image.tif', img)
+
+  file = open('t.txt', 'w')
+  file.write(str(img))
+  file.close()
+
+  print(img)
 
 
 def meanshift(img,spatial_radius,range_radius,min_density):
@@ -13,13 +26,7 @@ def meanshift(img,spatial_radius,range_radius,min_density):
   # PyMeanShift実行時間
   meanshift_time = time.time() - start
   print("meanshift time:{0}".format(meanshift_time) + "[sec]")
-  return img
 
-
-def shortcut1():
-  img = cv2.imread('results/meanshift_main.png', -1)
-  # img = cv2.imread('results/meanshift500.png', cv2.IMREAD_COLOR)
-  # img = cv2.imread('results/meanshift1920.png', cv2.IMREAD_COLOR)
   return img
 
 

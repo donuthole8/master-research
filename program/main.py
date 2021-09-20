@@ -11,6 +11,8 @@ import os
 
 path = 'images/_koyaura.tif'
 
+prepro.read_tifffile(path)
+
 if not os.path.isfile(path):
     raise FileNotFoundError('Image file not found!')
 img = cv2.imread(path, cv2.IMREAD_COLOR)
@@ -48,20 +50,17 @@ img = prepro.equalization(img)
 #   - 領域分割後に類似領域に異色画素が散在してるため行う
 img = prepro.quantization(img)
 
-img = cv2.medianBlur(img, 5)
-cv2.imwrite('results/original.png', img)
+# img = cv2.medianBlur(img, 5)
+# cv2.imwrite('results/median.png', img)
 
-img = cv2.bilateralFilter(img, 9, 75, 75)
-cv2.imwrite('results/bilateral.png', img)
+# img = cv2.bilateralFilter(img, 9, 75, 75)
+# cv2.imwrite('results/bilateral.png', img)
 
 # 類似色統合
 img = prepro.clustering(img)
 
 # 着目色（64色に減色）ごとに二値化（着目色とそれ以外、白黒ラベリングする）、そいで次の色に写って、、、、繰り返し
 # 白黒ラベリング
-
-# qua = prepro.quantization(img)
-
 # analysis.labeling(img,qua)
 
 # カラーラベリング実行時間短縮
