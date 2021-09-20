@@ -15,6 +15,7 @@ def detection(org,img):
 
   Lp,ap,bp = cv2.split(lab)
 
+  # 土砂検出
   _landslide = (Lp>128)&(ap>128)
 
   idx = np.where(_landslide)

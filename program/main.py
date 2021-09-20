@@ -6,7 +6,8 @@ import drawing
 
 
 # 入力画像読込
-path = 'images/_koyaura.tif'
+# path = 'images/_koyaura.tif'
+path = 'images/koyaura.tif'
 
 if not os.path.isfile(path):
     raise FileNotFoundError('Image file not found!')
@@ -31,8 +32,8 @@ cv2.imwrite('results/original.png', org)
 # PyMeanShift
 #   - Lab変換後の画像に適用
 #   - 第１引数：探索範囲、第２引数：探索色相、第３引数：粗さ
-# img = prepro.meanshift(img,10,10,300)
-img = cv2.imread('./images/_meanshift.png', cv2.IMREAD_COLOR)
+img = preprocessing.meanshift(img,10,10,300)
+# img = cv2.imread('./images/_meanshift.png', cv2.IMREAD_COLOR)
 
 # ヒストグラム均一化
 #   - Lab変換して処理した方が好ましい
