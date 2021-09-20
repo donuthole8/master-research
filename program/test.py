@@ -18,7 +18,7 @@ b4 = src.GetRasterBand(4).ReadAsArray()
 dtid = src.GetRasterBand(1).DataType
 
 # 出力画像
-output = gdal.GetDriverByName('GTiff').Create('geo.tif', xsize, ysize, band, dtid)
+output = gdal.GetDriverByName('GTiff').Create('./results/geo.tif', xsize, ysize, band, dtid)
 
 # 座標系指定
 output.SetGeoTransform(src.GetGeoTransform())
