@@ -1,9 +1,8 @@
-import cv2
-import prepro
+import cv2,os
+import preprocessing
 import analysis
 import detection
-import postpro
-import os
+import drawing
 
 
 # 入力画像読込
@@ -38,11 +37,11 @@ img = cv2.imread('./images/_meanshift.png', cv2.IMREAD_COLOR)
 # ヒストグラム均一化
 #   - Lab変換して処理した方が好ましい
 #   - 明度以外のチャンネルも均一化した方が好ましい
-img = prepro.equalization(img)
+img = preprocessing.equalization(img)
 
 # 量子化・減色処理・ノイズ除去
 #   - 領域分割後に類似領域に異色画素が散在してるため行う
-img = prepro.quantization(img)
+img = preprocessing.quantization(img)
 
 # img = cv2.medianBlur(img, 5)
 # cv2.imwrite('results/median.png', img)
@@ -51,14 +50,11 @@ img = prepro.quantization(img)
 # cv2.imwrite('results/bilateral.png', img)
 
 # 類似色統合
-img = prepro.clustering(img)
+img = preprocessing.clustering(img)
 
 # 着目色（64色に減色）ごとに二値化（着目色とそれ以外、白黒ラベリングする）、そいで次の色に写って、、、、繰り返し
 # 白黒ラベリング
 # analysis.labeling(img,qua)
-
-# カラーラベリング実行時間短縮
-# analysis.shortcut2()
 
 # テクスチャ解析
 #   - img か org のどちらに適用するか関数内で選択
@@ -71,22 +67,18 @@ img = prepro.clustering(img)
 # analysis.edge(org)
 
 # 災害領域検出
-#   - 斜面崩壊・瓦礫でピクセル穴がある　
-#   - 浸水検出結果で緑色のノイズがある
-_lnd,lnd = detection.detection(org, img)
+_lnd = detection.detection(org, img)
 
 # 不要領域検出
-# mask = methods.rejection()
-_veg,veg = detection.rejection(org, img)
+_veg = detection.rejection(org, img)
 
 # 最終出力
-# _lnd,_fld = postpro.integration(mask,lnd,fld,sky,veg,rbl,bld,org)
-res = postpro._integration(_lnd,_veg,org)
-postpro.write_tiffile(res,path)
+res = drawing._integration(_lnd,_veg,org)
+drawing.write_tiffile(res,path)
 
 
 # 精度評価
 #   - 領域単位で評価
-#   - 国土地理院の斜面崩壊判読図と比較
+#   - 国土地理院の斜面崩壊判読図と比較もあり
 #   - 本手法ではピクセルベースでの精度評価
 # postpro.evaluation(_lnd,_fld)
