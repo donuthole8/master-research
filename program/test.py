@@ -1,5 +1,5 @@
 import numpy as np
-from osgeo import gdal, gdalconst
+from osgeo import gdal
 from osgeo import osr # 空間参照モジュール
 
 src = gdal.Open('./images/_koyaura.tif')

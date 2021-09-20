@@ -1,5 +1,37 @@
 import cv2
 import numpy as np
+from osgeo import gdal,osr
+import pymeanshift as pms
+
+
+def _integration(_lnd,_veg,org):
+  h,w,_ = org.shape
+  bo,go,ro = cv2.split(org)
+  al = 0.45
+
+  b,g,r = cv2.split(org)
+
+  # lnd = np.full((h,w), 255)
+
+  # 斜面崩壊
+  idx = np.where(_lnd==0)
+  b[idx],g[idx],r[idx] = (bo[idx]*al+100*(1-al)),(go[idx]*al+70*(1-al)),(ro[idx]*al+230*(1-al))
+  # lnd[idx] = 0
+
+  # 植生除去
+  idx = np.where(_veg==0)
+  b[idx],g[idx],r[idx] = bo[idx],go[idx],ro[idx]
+  # lnd[idx] = 255
+
+  # スライド画像用出力
+  # idx = np.where(lnd==0)
+  # b[idx],g[idx],r[idx] = (bo[idx]*al+40*(1-al)),(go[idx]*al+220*(1-al)),(ro[idx]*al+140*(1-al))
+
+  res = np.dstack((np.dstack((b,g)),r))
+
+  cv2.imwrite('results/result.png', res)
+
+  return res
 
 
 def integration(mask,landslide,flooded,sky,veg,rbl,bld,org):
@@ -38,7 +70,7 @@ def integration(mask,landslide,flooded,sky,veg,rbl,bld,org):
   idx = np.where(bld==0)
   ba[idx],ga[idx],ra[idx] = (bo[idx]*al+200*(1-al)),(go[idx]*al+130*(1-al)),(ro[idx]*al+150*(1-al))
 
-  
+
   res = np.dstack((np.dstack((b,g)),r))
   nature = np.dstack((np.dstack((bn,gn)),rn))
   artifact = np.dstack((np.dstack((ba,ga)),ra))
@@ -54,7 +86,7 @@ def evaluation(_lnd,_fld):
   fld = np.dstack((np.dstack((_fld,_fld)),_fld))
   ans = cv2.imread('images/answer1.png', cv2.IMREAD_COLOR)
   # ans = cv2.imread('images/answer2_.png', cv2.IMREAD_COLOR)
-  
+
   # 斜面崩壊
   tp = np.count_nonzero((lnd==0)&(ans==(100,70,230)))
   fp = np.count_nonzero((lnd==0)&(ans!=(100,70,230)))
@@ -78,3 +110,35 @@ def evaluation(_lnd,_fld):
   print('\trecall :','{:.3g}'.format(recall))
   f1 = 2*(recall*precicsion)/(recall+precicsion)
   print('\tf1-measure :','{:.3g}'.format(f1))
+
+
+
+
+def write_tiffile(res,path):
+  src = gdal.Open(path)
+
+  xsize = src.RasterXSize
+  ysize = src.RasterYSize
+  band = src.RasterCount
+
+  # 第1-4バンド
+  b3,b2,b1 = cv2.split(res)
+  b4 = src.GetRasterBand(4).ReadAsArray()
+
+
+  # データタイプ番号
+  dtid = src.GetRasterBand(1).DataType
+
+  # 出力画像
+  output = gdal.GetDriverByName('GTiff').Create('./results/result.tif', xsize, ysize, band, dtid)
+
+  # 座標系指定
+  output.SetGeoTransform(src.GetGeoTransform())
+
+  # 空間情報を結合
+  output.SetProjection(src.GetProjection())
+  output.GetRasterBand(1).WriteArray(b1)
+  output.GetRasterBand(2).WriteArray(b2)
+  output.GetRasterBand(3).WriteArray(b3)
+  output.GetRasterBand(4).WriteArray(b4)
+  output.FlushCache()

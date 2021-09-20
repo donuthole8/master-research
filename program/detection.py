@@ -33,7 +33,7 @@ def detection(org,img):
   idx = np.where(_landslide)
   bl[idx],gl[idx],rl[idx] = (bo[idx]*al+100*(1-al)),(go[idx]*al+70*(1-al)),(ro[idx]*al+230*(1-al))
   bf[idx],gf[idx],rf[idx] = (bo[idx]*al+90*(1-al)),(go[idx]*al+230*(1-al)),(ro[idx]*al+250*(1-al))
-
+  _lnd[idx] = 0
 
   lnd,fld = np.dstack((np.dstack((bl,gl)),rl)),np.dstack((np.dstack((bf,gf)),rf))
 
@@ -43,7 +43,7 @@ def detection(org,img):
   cv2.imwrite('results/landslide.png', lnd)
   cv2.imwrite('results/flooded.png', fld)
 
-  return _lnd,_fld
+  return _lnd,lnd
 
 
 
@@ -130,4 +130,4 @@ def rejection(org,img):
   # cv2.imwrite('results/building.png', bld)
   # cv2.imwrite('results/rejection.png', rej)
 
-  return _rej,_sky,_veg,_rbl,_bld
+  return _veg,veg

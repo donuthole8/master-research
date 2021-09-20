@@ -1,19 +1,39 @@
-import cv2,time,tifffile
-import numpy as np
+import cv2,time
+from osgeo import gdal,osr
 import pymeanshift as pms
 from PIL import Image
 
 
 def read_tifffile(path):
-  img = tifffile.imread(path)
-  print(img.shape)
-  tifffile.imsave('image.tif', img)
+  src = gdal.Open(path)
 
-  file = open('t.txt', 'w')
-  file.write(str(img))
-  file.close()
+  xsize = src.RasterXSize
+  ysize = src.RasterYSize
+  band = src.RasterCount
 
-  print(img)
+  # 第1-4バンド
+  b1 = src.GetRasterBand(1).ReadAsArray()
+  b2 = src.GetRasterBand(2).ReadAsArray()
+  b3 = src.GetRasterBand(3).ReadAsArray()
+  b4 = src.GetRasterBand(4).ReadAsArray()
+
+  # データタイプ番号
+  dtid = src.GetRasterBand(1).DataType
+
+  # 出力画像
+  output = gdal.GetDriverByName('GTiff').Create('./results/geo.tif', xsize, ysize, band, dtid)
+
+  # 座標系指定
+  output.SetGeoTransform(src.GetGeoTransform())
+
+  # 空間情報を結合
+  output.SetProjection(src.GetProjection())
+  output.GetRasterBand(1).WriteArray(b1)
+  output.GetRasterBand(2).WriteArray(b2)
+  output.GetRasterBand(3).WriteArray(b3)
+  output.GetRasterBand(4).WriteArray(b4)
+  output.FlushCache()
+  output = None
 
 
 def meanshift(img,spatial_radius,range_radius,min_density):

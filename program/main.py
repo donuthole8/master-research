@@ -7,18 +7,12 @@ import os
 
 
 # 入力画像読込
-#   - 地理情報を失わないのであればpng形式画像を用いるのが好ましい
-
 path = 'images/_koyaura.tif'
-
-prepro.read_tifffile(path)
 
 if not os.path.isfile(path):
     raise FileNotFoundError('Image file not found!')
 img = cv2.imread(path, cv2.IMREAD_COLOR)
 print(int(img.shape[0]), ' x ', int(img.shape[1]), 'pix')
-
-# 地理情報保存
 
 
 # # サイズ縮小
@@ -79,15 +73,17 @@ img = prepro.clustering(img)
 # 災害領域検出
 #   - 斜面崩壊・瓦礫でピクセル穴がある　
 #   - 浸水検出結果で緑色のノイズがある
-lnd, fld = detection.detection(org, img)
+_lnd,lnd = detection.detection(org, img)
 
 # 不要領域検出
 # mask = methods.rejection()
-mask, sky, veg, rbl, bld = detection.rejection(org, img)
+_veg,veg = detection.rejection(org, img)
 
 # 最終出力
-#   - tif形式でも出力したい
 # _lnd,_fld = postpro.integration(mask,lnd,fld,sky,veg,rbl,bld,org)
+res = postpro._integration(_lnd,_veg,org)
+postpro.write_tiffile(res,path)
+
 
 # 精度評価
 #   - 領域単位で評価
