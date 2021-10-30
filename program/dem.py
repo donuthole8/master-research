@@ -99,12 +99,28 @@ def main():
 
   # DEMの差分算出
   dem_sub = dem_uav - dem_gsi
+  # UAVのDEMで0値は透過背景
   idx = np.where(dem_uav == 0)
   dem_sub[idx] = 0
-  print(dem_sub)
   cv2.imwrite("./results/dem_sub.png", dem_sub)
 
   # ヒストグラム算出
+  # plt.hist(dem_uav.ravel(),bins=256,range=[1,256],histtype="bar",rwidth=0.5,color="teal")
+  # plt.savefig("./histogram/dem_uav.png")
+
+  # plt.hist(dem_gsi.ravel(),bins=256,range=[10,256],histtype="bar",rwidth=0.5,color="darkred")
+  # plt.savefig("./histogram/dem_gsi.png")
+
+  plt.hist(dem_uav.ravel(),bins=256,range=[10,256],histtype="step",rwidth=0.5,color="teal",log=True)
+  plt.hist(dem_gsi.ravel(),bins=256,range=[10,256],histtype="step",rwidth=0.5,color="darkred",log=True)
+  plt.savefig("./histogram/uav&gsi.png")
+
+  # plt.hist(dem_uav.ravel(),bins=256,range=[2,10],histtype="step",rwidth=0.5,color="teal",log=True)
+  # plt.hist(dem_gsi.ravel(),bins=256,range=[2,10],histtype="step",rwidth=0.5,color="darkred",log=True)
+  # plt.savefig("./histogram/uav&gsi.png")
+
+  # plt.hist(dem_sub.ravel(),bins=256,range=[1,256],histtype="bar",rwidth=0.5,color="darkred")
+  # plt.savefig("./histogram/dem_sub.png")
 
 
   # バイナリ書き出し
