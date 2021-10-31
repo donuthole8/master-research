@@ -113,6 +113,10 @@ def write_tiffile(res,path):
   ysize = src.RasterYSize
   band = src.RasterCount
 
+  # height,width = res.shape[0],res.shape[1]
+  # res = cv2.resize(res, (int(width*2), int(height*2)))
+
+
   # 第1-4バンド
   b3,b2,b1 = cv2.split(res)
   b4 = src.GetRasterBand(4).ReadAsArray()
