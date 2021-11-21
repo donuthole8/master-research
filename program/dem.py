@@ -79,11 +79,11 @@ def draw_histogram(uav_raw,gsi_raw,name):
   # ヒストグラム比較
   plt.clf()
   if (name=="_normalization"):
-    hist_range=[-2,334]
+    hist_range=[-2,190]
   else:
     hist_range=[-135,147]
   plt.hist(uav_raw.ravel(),bins=256,range=hist_range,histtype="step",rwidth=0.5,color="teal",label="uav")
-  plt.hist(gsi_raw.ravel(),bins=256,range=[-2,334],histtype="step",rwidth=0.5,color="darkred",label="gsi")
+  plt.hist(gsi_raw.ravel(),bins=256,range=[-2,190],histtype="step",rwidth=0.5,color="darkred",label="gsi")
   plt.ylim(0,1800)
   plt.savefig(f"./histogram/uav&gsi{name}.png")
 
@@ -96,11 +96,11 @@ def  normalize_dem_uav(uav_raw,gsi_raw):
   max_uav,min_uav = np.max(uav_raw),np.unique(uav_raw)[1]
   max_gsi,min_gsi = np.max(gsi_raw),np.unique(gsi_raw)[1]
   # 標高値がヒストグラム上で重なるように手動設定
-  # min_uav = -36
+  min_uav = -36
 
   # 標高最大値（山間部の頂上・植生頂上）の変化は無いと仮定する
   # （標高最小値（海・海岸）は海抜0mと仮定する）
-  # UAVのDEMを0 - 333mに正規化
+  # UAVのDEMを0 - 180mに正規化
   _uav_raw = (uav_raw-min_uav)/(max_uav-min_uav) * max_gsi
   idx = np.where(_uav_raw == -21779.332)
   _uav_raw[idx] = -999
@@ -117,6 +117,29 @@ def  normalize_dem_uav(uav_raw,gsi_raw):
   cv2.imwrite("./results/normalization.png",_uav_raw)
 
   return _uav_raw
+
+
+def calc_sedimentation(uav_raw,gsi_raw):
+  # 差分処理
+  dem_sub = uav_raw - gsi_raw
+
+  # UAVのDEMで0値は透過背景
+  idx = np.where(uav_raw == -33575.254)
+  dem_sub[idx] = -999
+
+  # バイナリ出力
+  f = open(f'./binary/dem_sub.txt', 'w')
+  for i in dem_sub:
+    for j in i:
+      f.write(str(int(j)) + ' ')
+    f.write(str('\n'))
+  f.close()
+
+  # 画像の保存
+  cv2.imwrite("./results/dem_sub.png", dem_sub)
+
+  return dem_sub
+
 
 
 def write_tifimage(res,path):
@@ -137,7 +160,8 @@ def write_tifimage(res,path):
   b4 = src.GetRasterBand(4).ReadAsArray()
 
   # データタイプ番号
-  dtid = src.GetRasterBand(1).DataType
+  # dtid = src.GetRasterBand(1).DataType
+  dtid = 6
 
   # 出力画像
   output = gdal.GetDriverByName('GTiff').Create('./results/dem_sub.tif', xsize, ysize, band, dtid)
@@ -188,12 +212,8 @@ def main():
   # ヒストグラム描画
   draw_histogram(normalization_uav_raw,gsi_raw,"_normalization")
 
-  # 差分処理
-  dem_sub = normalization_uav_raw - clipping_gsi_raw
-  # UAVのDEMで0値は透過背景
-  idx = np.where(uav_raw == -32767.0)
-  dem_sub[idx] = -999
-  cv2.imwrite("./results/dem_sub.png", dem_sub)
+  # 堆積差分算出
+  dem_sub = calc_sedimentation(normalization_uav_raw,gsi_raw)
 
   # tif画像への書き出し
   write_tifimage(dem_sub,path3)

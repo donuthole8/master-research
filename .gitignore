@@ -1,6 +1,8 @@
 .DS_Store
 document/.DS_Store
 program/__pycache__/
+program/binary/
+program/build/
 program/images/
 program/results/
 program/.DS_Store
