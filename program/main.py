@@ -10,7 +10,7 @@ path = 'images/_koyaura.tif'
 # path = 'images/koyaura.tif'
 
 if not os.path.isfile(path):
-    raise FileNotFoundError('Image file not found!')
+	raise FileNotFoundError('Image file not found!')
 img = cv2.imread(path, cv2.IMREAD_COLOR)
 print(int(img.shape[0]), 'x', int(img.shape[1]), 'pix')
 

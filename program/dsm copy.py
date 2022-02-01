@@ -1,8 +1,7 @@
 import cv2
 from matplotlib import pyplot as plt
-from osgeo import gdal,osr
+from osgeo import gdal
 import numpy as np
-
 
 
 def write_tiffile(res,path):
@@ -69,6 +68,21 @@ def adjust_dsm(dsm_uav, dsm_heli):
   return _dsm_uav,_dsm_heli
 
 
+def _draw_histogram(dsm_uav,dsm_heli,name):
+  # ヒストグラム比較
+  plt.clf()
+  # if (name=="_normalization"):
+  #   hist_range=[-2,190]
+  # else:
+  #   hist_range=[-999999,147]
+  plt.hist(dsm_uav.ravel(),bins=256,range=(-150,150),histtype="step",rwidth=0.5,color="teal",label="uav")
+  plt.hist(dsm_heli.ravel(),bins=256,range=(-150,150),histtype="step",rwidth=0.5,color="darkred",label="gsi")
+  plt.ylim(0,30000)
+  plt.savefig(f"./histogram/uav&gsi{name}.png")
+
+  cv2.imwrite("./results/dem_gsi_clipping.png",dsm_heli)
+
+
 def draw_histogram(dsm_uav,dsm_heli,name):
   # ヒストグラム比較
   plt.clf()
@@ -76,8 +90,8 @@ def draw_histogram(dsm_uav,dsm_heli,name):
   #   hist_range=[-2,190]
   # else:
   #   hist_range=[-999999,147]
-  plt.hist(dsm_uav.ravel(),bins=256,histtype="step",rwidth=0.5,color="teal",label="uav")
-  plt.hist(dsm_heli.ravel(),bins=256,histtype="step",rwidth=0.5,color="darkred",label="gsi")
+  plt.hist(dsm_uav.ravel(),bins=256,range=(-30,185),histtype="step",rwidth=0.5,color="teal",label="uav")
+  plt.hist(dsm_heli.ravel(),bins=256,range=(-30,185),histtype="step",rwidth=0.5,color="darkred",label="gsi")
   # plt.ylim(0,1800)
   plt.savefig(f"./histogram/uav&gsi{name}.png")
 
@@ -118,7 +132,7 @@ def normalize_dsm(dsm_uav,dsm_heli,max_dsm_uav,min_dsm_uav):
   max_dsm_heli,min_dsm_heli = np.max(dsm_heli),np.unique(dsm_heli)[1]
   print(max_dsm_heli,min_dsm_heli)
 
-
+  min_dsm_uav = -90
   # 標高最大値（山間部の頂上・植生頂上）の変化は無いと仮定する
   # （標高最小値（海・海岸）は海抜0mと仮定する）
   # UAVのDEMを0-180mに正規化
@@ -129,8 +143,8 @@ def normalize_dsm(dsm_uav,dsm_heli,max_dsm_uav,min_dsm_uav):
   # _dsm = (dsm-min_dsm)/(max_dsm-min_dsm) * max_height
 
   # 標高ちょっと考慮
-  _dsm_uav = (dsm_uav-min_dsm_uav)/(max_dsm_uav-min_dsm_uav) * 170
-  _dsm_heli = (dsm_heli-min_dsm_heli)/(max_dsm_heli-min_dsm_heli) * 180
+  _dsm_uav = (dsm_uav-min_dsm_uav)/(max_dsm_uav-min_dsm_uav) * 185
+  _dsm_heli = (dsm_heli-min_dsm_heli)/(max_dsm_heli-min_dsm_heli) * 190
   max_dsm_uav,min_dsm_uav = np.max(_dsm_uav),np.unique(_dsm_uav)[1]
   print(max_dsm_uav,min_dsm_uav)
   max_dsm_uav,min_dsm_uav = np.max(_dsm_heli),np.unique(_dsm_heli)[1]
@@ -144,6 +158,7 @@ def normalize_dsm(dsm_uav,dsm_heli,max_dsm_uav,min_dsm_uav):
   # cv2.imwrite("./results/normalization.png",_dsm)
 
   return _dsm_uav,_dsm_heli
+
 
 def calc_sedimentation(dsm_uav,dsm_heli):
   # 差分処理
@@ -193,10 +208,10 @@ def check_data(dsm_uav,dsm_heli):
   print(dsm_uav.shape)
   print(dsm_heli.shape)
   # バイナリ書き出し・画素値確認
-  write_binfile(dsm_uav, './binary/dsm_uav.txt')
-  write_binfile(dsm_heli, './binary/dsm_heli.txt')
+  # write_binfile(dsm_uav, './binary/dsm_uav.txt')
+  # write_binfile(dsm_heli, './binary/dsm_heli.txt')
   # ヒストグラム描画
-  # draw_histogram(dsm_uav,dsm_heli,"")
+  _draw_histogram(dsm_uav,dsm_heli,"")
 
 
 
@@ -237,7 +252,7 @@ def main():
   # print("wrote 2")
 
   # ヒストグラム描画
-  draw_histogram(_dsm_uav,dsm_heli,"_normalization")
+  draw_histogram(_dsm_uav,_dsm_heli,"_normalization")
 
   # 堆積差分算出
   dsm_sub = calc_sedimentation(_dsm_uav,_dsm_heli)
