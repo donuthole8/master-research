@@ -123,11 +123,15 @@ def detection(org,img):
   Lp,ap,bp = cv2.split(lab)
 
   # 土砂検出
-  _landslide = (Lp>128)&(ap>128)
+  _landslide = (Lp>100)&(ap>100)
+  # _landslide = (Lp>100)&(ap>10)
 
   idx = np.where(_landslide)
   bl[idx],gl[idx],rl[idx] = (bo[idx]*al+100*(1-al)),(go[idx]*al+70*(1-al)),(ro[idx]*al+230*(1-al))
   _lnd[idx] = 0
+
+  # mask = np.zeros((img.shape[0],img.shpae[1]))
+  # mask[idx] = np.where(_landslide)
 
   lnd = np.dstack((np.dstack((bl,gl)),rl))
 
@@ -156,6 +160,7 @@ def rejection(org,img):
 
   # 植生
   _vegitation = ((ap<120)|(bp<120))&(hp>20)
+  # _vegitation = ((ap<120)|(bp<120))
 
   idx = np.where(_vegitation)
 
